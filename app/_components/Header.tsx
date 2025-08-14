@@ -2,8 +2,15 @@
 
 import { InteractiveHoverButton } from "@/components/magicui/interactive-hover-button";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Plus, MapPin, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -27,11 +34,13 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="w-full border-b">
+    <header className="w-full border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between p-4 md:p-6">
         <div className="flex items-center gap-2">
           <Image src="/logoipsum.svg" alt="logo" width={40} height={40} />
-          <h1 className="text-xl font-bold sm:text-2xl">Trip Planner</h1>
+          <h1 className="text-xl font-bold sm:text-2xl tracking-tight">
+            Trip Planner
+          </h1>
         </div>
 
         {/* Desktop nav */}
@@ -55,11 +64,34 @@ function Header() {
           </SignedOut>
 
           <SignedIn>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-1">
+                  <MapPin className="h-4 w-4" />
+                  Trips
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/my-trips" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    My trips
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/create-new-trip"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create new trip
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <UserButton />
-
-            <Link href="/create-new-trip">
-              <Button>Create New Trip</Button>
-            </Link>
           </SignedIn>
         </div>
 
@@ -70,17 +102,13 @@ function Header() {
             variant="ghost"
             aria-expanded={isOpen}
             onClick={() => setIsOpen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-md p-2 outline-none ring-0 "
+            className="inline-flex items-center justify-center rounded-md p-2"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
 
           <SignedIn>
             <UserButton />
-
-            <Link href="/create-new-trip">
-              <Button>Create New Trip</Button>
-            </Link>
           </SignedIn>
         </div>
       </div>
@@ -88,23 +116,60 @@ function Header() {
       {/* Mobile panel */}
       {isOpen && (
         <div className="mx-auto block max-w-6xl p-4 pt-0 md:hidden">
-          <nav className="flex flex-col gap-2 rounded-lg border p-3">
+          <nav className="flex flex-col gap-2 rounded-lg border p-3 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             {menuItems.map((item) => (
-              <Link
-                href={item.href}
+              <Button
                 key={item.label}
-                className="rounded-md px-3 py-2 text-base font-medium hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setIsOpen(false)}
+                variant="ghost"
+                className="justify-start"
+                asChild
               >
-                {item.label}
-              </Link>
+                <Link href={item.href} onClick={() => setIsOpen(false)}>
+                  {item.label}
+                </Link>
+              </Button>
             ))}
 
-            <SignInButton mode="modal">
-              <InteractiveHoverButton className="w-full">
-                Get Started
-              </InteractiveHoverButton>
-            </SignInButton>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <InteractiveHoverButton className="w-full">
+                  Get Started
+                </InteractiveHoverButton>
+              </SignInButton>
+            </SignedOut>
+
+            <SignedIn>
+              <div className="border-t pt-2 mt-2">
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full"
+                  asChild
+                >
+                  <Link
+                    href="/my-trips"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    My trips
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full"
+                  asChild
+                >
+                  <Link
+                    href="/create-new-trip"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create new trip
+                  </Link>
+                </Button>
+              </div>
+            </SignedIn>
           </nav>
         </div>
       )}

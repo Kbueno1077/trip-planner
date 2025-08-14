@@ -2,31 +2,31 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useTripDetailContext } from "@/context/TripDetailContext";
+import { useUserContext } from "@/context/UserDetailContext";
+import { api } from "@/convex/_generated/api";
 import { Message } from "@/types/messages";
-import { TripPlan } from "@/types/trip_details";
 import axios from "axios";
+import { useMutation } from "convex/react";
 import { Loader2, SendIcon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { v4 } from "uuid";
 import BudgetUI, { BudgetType } from "./BudgetUI";
 import EmptyBoxState from "./EmptyBoxState";
 import FinalUI from "./FinalUI";
 import GroupSizeUI, { type GroupSizeType } from "./GroupSizeUI";
 import TripDurationUI from "./TripDurationUI";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { useUserContext } from "@/app/provider";
-import { v4 } from "uuid";
 
 function ChatBox() {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isFinalLoading, setIsFinalLoading] = useState(false);
-
-  const [tripDetails, setTripDetails] = useState<TripPlan | null>(null);
+  const { tripDetails, setTripDetails } = useTripDetailContext();
+  const { userDetails } = useUserContext();
   const saveTripDetails = useMutation(api.tripDetails.createNewTripDetails);
 
-  const { userDetails } = useUserContext();
   const onSend = async (message?: string) => {
     if (!input && !message) return;
 
@@ -70,15 +70,22 @@ function ChatBox() {
           ui: result?.data?.ui ?? "",
         },
       ]);
-
-      console.log(result);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error sending message:", error);
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
+
+      toast.error(errorMessage);
+
       setMessages((prev: Message[]) => [
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, something went wrong. Please try again.",
+          content:
+            errorMessage ?? "Sorry, something went wrong. Please try again.",
           ui: "none",
         },
       ]);
@@ -106,15 +113,25 @@ function ChatBox() {
           uid: userDetails._id,
         });
       }
-
-      console.log("🚀 ~ whenFinal ~ result:", result);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error in final step:", error);
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
+
+      toast.error(
+        errorMessage ??
+          "Sorry, there was an error generating your final trip plan. Please try again.",
+      );
+
       setMessages((prev: Message[]) => [
         ...prev,
         {
           role: "assistant",
           content:
+            errorMessage ??
             "Sorry, there was an error generating your final trip plan. Please try again.",
           ui: "none",
         },
@@ -145,14 +162,16 @@ function ChatBox() {
       case "groupSize":
         return <GroupSizeUI onSelectGroupSize={onSelectGroupSize} />;
       case "final":
-        return <FinalUI isFinalLoading={isFinalLoading} />;
+        return (
+          <FinalUI isFinalLoading={isFinalLoading} tripDetails={tripDetails} />
+        );
     }
 
     return null;
   };
 
   return (
-    <div className="h-[85dvh] flex flex-col pt-10 px-5">
+    <div className="h-[90dvh] flex flex-col pt-10 px-3 ">
       {messages.length === 0 && (
         <EmptyBoxState
           onSelectOption={(option) => {

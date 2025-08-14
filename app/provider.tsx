@@ -1,29 +1,15 @@
 "use client";
 
+import { TripDetailContext } from "@/context/TripDetailContext";
+import { UserDetailContext } from "@/context/UserDetailContext";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import type { CreateUserArgs } from "@/convex/validators";
+import { TripPlan } from "@/types/trip_details";
 import { useUser } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "./_components/Header";
-
-type UserContextValue = {
-  user: ReturnType<typeof useUser>["user"];
-  userDetails: Doc<"users"> | null;
-};
-
-const UserDetailContext = createContext<UserContextValue | undefined>(
-  undefined,
-);
-
-export function useUserContext() {
-  const context = useContext(UserDetailContext);
-  if (!context) {
-    throw new Error("useUserContext must be used within a UserContextProvider");
-  }
-  return context;
-}
 
 function Provider({
   children,
@@ -32,6 +18,8 @@ function Provider({
 }>) {
   const { user } = useUser();
   const [userDetails, setUserDetails] = useState<Doc<"users"> | null>(null);
+
+  const [tripDetails, setTripDetails] = useState<TripPlan | null>(null);
   const createUserMutation = useMutation(api.user.createNewUser);
 
   const createNewUser = async () => {
@@ -55,9 +43,11 @@ function Provider({
 
   return (
     <UserDetailContext.Provider value={{ user, userDetails }}>
-      <Header />
+      <TripDetailContext.Provider value={{ tripDetails, setTripDetails }}>
+        <Header />
 
-      {children}
+        {children}
+      </TripDetailContext.Provider>
     </UserDetailContext.Provider>
   );
 }

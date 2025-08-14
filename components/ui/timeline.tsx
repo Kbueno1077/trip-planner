@@ -37,10 +37,10 @@ export const Timeline = ({
 
   return (
     <div
-      className="w-full bg-white dark:bg-neutral-950 font-sans md:px-10"
+      className="w-full bg-white dark:bg-neutral-950 font-sans md:px-2"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto py-7 px-4 md:px-8 lg:px-10">
+      <div className="max-w-7xl mx-auto py-5 px-4">
         <h2 className="text-lg md:text-4xl mb-4 text-black dark:text-white max-w-4xl">
           Your Trip Itinerary from{" "}
           <strong className="text-primary">{tripDetails.origin}</strong> to{" "}
@@ -94,9 +94,7 @@ export const Timeline = ({
           </div>
         ))}
         <div
-          style={{
-            height: height + "px",
-          }}
+          style={{}}
           className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 dark:via-neutral-700 to-transparent to-[99%]  [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] "
         >
           <motion.div

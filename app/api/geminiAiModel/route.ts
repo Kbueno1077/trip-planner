@@ -2,12 +2,34 @@ import { finalPrompt } from "@/data/finalPrompt";
 import { prompt } from "@/data/prompt";
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { aj } from "../arcjet/route";
+import { PRO_PLAN_ID } from "@/lib/utils";
 
-// Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await currentUser();
+    const { has } = await auth();
+    const hasPremiumAccess = has({ plan: PRO_PLAN_ID });
+
+    const decision = await aj.protect(req, {
+      requested: 5,
+      userId: user?.primaryEmailAddress?.emailAddress ?? "",
+    });
+
+    if (!hasPremiumAccess && decision.reason.isRateLimit()) {
+      return NextResponse.json(
+        {
+          error: "Too Many Requests",
+          message:
+            "You have reached the rate limit for today. Please try again tomorrow.",
+        },
+        { status: 429 },
+      );
+    }
+
     const body = await req.json();
     const messages = body?.messages ?? body?.body?.messages ?? [];
     const isFinal = body?.isFinal ?? false;
@@ -54,8 +76,14 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(data satisfies AiResponse);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in Gemini AI route:", error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: String(error),
+        message: "Sorry, something went wrong. Please try again.",
+      },
+      { status: 500 },
+    );
   }
 }

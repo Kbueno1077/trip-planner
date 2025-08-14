@@ -9,52 +9,92 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTripDetailContext } from "@/context/TripDetailContext";
-import { DayActivities } from "./DayActivities";
-import { HotelsSection } from "./HotelsSection";
+import { useUserContext } from "@/context/UserDetailContext";
+import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { TripPlan } from "@/types/trip_details";
+import { useQuery } from "convex/react";
 import Image from "next/image";
 import React from "react";
+import { DayActivities } from "@/app/create-new-trip/_components/Itinerary/DayActivities";
+import { HotelsSection } from "@/app/create-new-trip/_components/Itinerary/HotelsSection";
 
-export function Itinerary() {
-  const { tripDetails } = useTripDetailContext();
+type TripDoc = Omit<Doc<"tripDetails">, "tripDetail" | "uid"> & {
+  tripDetail: TripPlan;
+  uid: Id<"users">;
+};
 
-  if (!tripDetails) {
+interface TripViewerProps {
+  tripId: string;
+}
+
+export function TripViewer({ tripId }: TripViewerProps) {
+  const { userDetails } = useUserContext();
+
+  const trips = useQuery(
+    api.tripDetails.getTripById,
+    userDetails
+      ? { userId: userDetails._id, tripId: tripId as Id<"tripDetails"> }
+      : "skip",
+  ) as TripDoc[] | undefined;
+
+  const trip = trips?.[0];
+  const isLoading = !userDetails || trips === undefined;
+
+  if (isLoading) {
     return (
-      <Card className="h-[90dvh]">
-        <CardHeader>
-          <CardTitle>Get your trip ready</CardTitle>
-          <CardDescription>Build your trip, easy and fast.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-2xl overflow-hidden">
-            <img
-              src="/trip2.jpg"
-              alt="Trip illustration"
-              className="w-full h-full object-cover"
-            />
+      <div className="w-full">
+        <div className="relative h-48 md:h-64 w-full overflow-hidden">
+          <Skeleton className="absolute inset-0 h-full w-full" />
+        </div>
+        <div className="max-w-7xl mx-auto py-5 px-4">
+          <Skeleton className="h-8 w-96 mb-4" />
+          <Skeleton className="h-4 w-64 mb-6" />
+          <div className="space-y-8">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
+
+  if (!trip) {
+    return (
+      <div className="max-w-7xl mx-auto py-20 px-4">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Trip not found</CardTitle>
+            <CardDescription>
+              The trip you&apos;re looking for doesn&apos;t exist or you
+              don&apos;t have access to it.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  const tripDetails = trip.tripDetail;
 
   const data = [
     {
       title: "Hotels",
       content: <HotelsSection hotels={tripDetails.hotels} />,
     },
-
-    ...tripDetails.itinerary.map((dayData) => {
-      return {
-        title: `Day ${dayData.day}`,
-        content: <DayActivities activities={dayData.activities} />,
-      };
-    }),
+    ...tripDetails.itinerary.map((dayData) => ({
+      title: `Day ${dayData.day}`,
+      content: <DayActivities activities={dayData.activities} />,
+    })),
   ];
 
   return (
     <HeroItinerary tripDestination={tripDetails.destination}>
-      <div className="relative w-full h-[90dvh] overflow-auto pt-5 ">
+      <div className="relative w-full min-h-[90vh] pt-5">
         <Timeline data={data} tripDetails={tripDetails} />
       </div>
     </HeroItinerary>
@@ -117,7 +157,7 @@ function HeroItinerary({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
         <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
             {tripDestination}
           </h2>
         </div>
