@@ -13,25 +13,30 @@ interface Hotel {
   rating: number;
 }
 
-interface ItineraryItem {
-  day: number;
+interface Activity {
+  time_of_day: string;
   place_name: string;
-  best_time_to_visit: string;
-  place_address: string;
-  place_description: string;
   place_details: string;
-  place_geo_coordinates: GeoCoordinates;
   place_image_url: string;
   place_rating: number;
+  place_address: string;
+  place_description: string;
   ticket_price: string;
   time_travel_each_location: string;
+  best_time_to_visit: string;
+  place_geo_coordinates: GeoCoordinates;
+}
+
+interface ItineraryItem {
+  day: number;
+  activities: Activity[];
 }
 
 interface TripPlan {
   destination: string;
   duration: string;
   origin: string;
-  budget: "Low" | "Medium" | "High" | string; // You can make this more specific if needed
+  budget: "Low" | "Medium" | "High" | string;
   group_size: string;
   hotels: Hotel[];
   itinerary: ItineraryItem[];
@@ -47,5 +52,6 @@ export type {
   TripPlanResponse,
   Hotel,
   ItineraryItem,
+  Activity,
   GeoCoordinates,
 };

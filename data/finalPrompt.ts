@@ -9,11 +9,17 @@ Requirements:
   - "rating" must be a number between 1.0 and 5.0 (one decimal preferred).
   - "geo_coordinates.latitude" in [-90, 90], "geo_coordinates.longitude" in [-180, 180].
 - Itinerary:
-  - For each day from 1 to the total duration, include 2–4 entries as separate objects in the "itinerary" array.
-  - Each entry must include all fields in the schema exactly. "day" must match the day number for that entry.
-  - "ticket_price" should reflect budget sensibly (e.g., lower prices for Low budget).
-  - "time_travel_each_location" should be realistic and concise (e.g., "15 min walk", "20 min by metro").
-  - "best_time_to_visit" should be short, practical guidance (e.g., "Morning" or "Late afternoon").
+  - For each day from 1 to the total duration, include 2–4 entries as part of an activities array that has:
+  -> "time_of_day" should specify when to do the activity: "Morning", "Afternoon", or "Evening".
+  -> "ticket_price" should reflect budget sensibly (e.g., lower prices for Low budget).
+  -> "time_travel_each_location" should be realistic and concise (e.g., "15 min walk", "20 min by metro").
+  -> "best_time_to_visit" should be short, practical guidance (e.g., "Morning" or "Late afternoon").
+  -> "place_name" should be the name of the place.
+  -> "place_details" should be the details of the place.
+  -> "place_image_url" should be the image of the place.
+  -> "place_rating" should be the rating of the place.
+  -> "place_address" should be the address of the place.
+  -> "place_description" should be the description of the place.
 - Realism and formatting:
   - Use plausible, concise address strings. Do not use placeholders like "N/A" or "Unknown".
   - All image URLs must be https. If unsure, use a plausible public stock photo URL pattern.
@@ -49,20 +55,30 @@ Schema:
     ],
     "itinerary": [
       {
-        "day": "number",
-        "place_name": "string",
-        "place_details": "string",
-        "place_image_url": "string",
-        "place_geo_coordinates": {
-          "latitude": "number",
-          "longitude": "number"
-        },
-        "place_rating": "number",
-        "place_address": "string",
-        "place_description": "string",
-        "ticket_price": "string",
-        "time_travel_each_location": "string",
-        "best_time_to_visit": "string"
+        "day": "number",   
+        "activities": [
+          {
+            "time_of_day": "string",
+            "place_name": "string",
+            "place_details": "string",
+            "place_image_url": "string",
+            "place_rating": "number",
+            "place_address": "string",
+            "place_description": "string",
+            "ticket_price": "string",
+            "time_travel_each_location": "string",
+            "best_time_to_visit": "string",
+            "place_geo_coordinates": {
+              "latitude": "number",
+              "longitude": "number",
+            },
+            "place_name": "string",
+            "place_details": "string",
+            "place_image_url": "string",
+           },
+          }
+        ],
+       
       }
     ]
   }
