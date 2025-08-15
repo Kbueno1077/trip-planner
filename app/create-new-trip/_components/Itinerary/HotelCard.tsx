@@ -29,17 +29,21 @@ export function HotelCard({ hotel }: HotelCardProps) {
   return (
     <div className="bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
       {/* Image Section */}
-      <div className="w-full h-40 overflow-hidden">
+      <div className="w-full h-40 overflow-hidden bg-muted">
         {isLoading ? (
           <div className="w-full h-full flex items-center justify-center">
             <Loader2 className="w-4 h-4 animate-spin" />
           </div>
-        ) : (
+        ) : photoUrl ? (
           <img
-            src={photoUrl ?? ""}
+            src={photoUrl}
             alt={hotel.hotel_name}
             className="w-full h-full object-cover"
           />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <MapPin className="w-8 h-8" />
+          </div>
         )}
       </div>
 

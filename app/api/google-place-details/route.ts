@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
     );
 
     const placeRefName = result.data.places[0]?.photos[0]?.name;
+
+    if (!placeRefName) {
+      return NextResponse.json({
+        photo: null,
+      });
+    }
+
     const PHOTO_URL = `https://places.googleapis.com/v1/${placeRefName}/media?maxHeightPx=1000&maxWidthPx=1000&key=${process.env.GOOGLE_MAPS_API_KEY}`;
 
     return NextResponse.json({

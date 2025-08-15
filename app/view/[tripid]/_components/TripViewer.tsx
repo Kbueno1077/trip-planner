@@ -18,6 +18,8 @@ import Image from "next/image";
 import React from "react";
 import { DayActivities } from "@/app/create-new-trip/_components/Itinerary/DayActivities";
 import { HotelsSection } from "@/app/create-new-trip/_components/Itinerary/HotelsSection";
+import GlobalMap from "@/app/create-new-trip/_components/GlobalMap/GlobalMap";
+import { useTripDetailContext } from "@/context/TripDetailContext";
 
 type TripDoc = Omit<Doc<"tripDetails">, "tripDetail" | "uid"> & {
   tripDetail: TripPlan;
@@ -30,6 +32,7 @@ interface TripViewerProps {
 
 export function TripViewer({ tripId }: TripViewerProps) {
   const { userDetails } = useUserContext();
+  const { setTripDetails } = useTripDetailContext();
 
   const trips = useQuery(
     api.tripDetails.getTripById,
@@ -39,6 +42,13 @@ export function TripViewer({ tripId }: TripViewerProps) {
   ) as TripDoc[] | undefined;
 
   const trip = trips?.[0];
+
+  React.useEffect(() => {
+    if (trip) {
+      setTripDetails(trip.tripDetail);
+    }
+  }, [trip]);
+
   const isLoading = !userDetails || trips === undefined;
 
   if (isLoading) {
@@ -94,8 +104,14 @@ export function TripViewer({ tripId }: TripViewerProps) {
 
   return (
     <HeroItinerary tripDestination={tripDetails.destination}>
-      <div className="relative w-full min-h-[90vh] pt-5">
-        <Timeline data={data} tripDetails={tripDetails} />
+      <div className="lg:grid grid-cols-5 pt-10">
+        <div className="w-full lg:col-span-3">
+          <Timeline data={data} tripDetails={tripDetails} />
+        </div>
+
+        <div className="w-full lg:col-span-2">
+          <GlobalMap />
+        </div>
       </div>
     </HeroItinerary>
   );

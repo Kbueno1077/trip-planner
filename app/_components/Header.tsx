@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTripDetailContext } from "@/context/TripDetailContext";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Menu, X, Plus, MapPin, ChevronDown } from "lucide-react";
 import Image from "next/image";
@@ -32,6 +33,7 @@ const menuItems = [
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { setTripDetails } = useTripDetailContext();
 
   return (
     <header className="w-full border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -84,6 +86,9 @@ function Header() {
                   <Link
                     href="/create-new-trip"
                     className="flex items-center gap-2"
+                    onClick={() => {
+                      setTripDetails(null);
+                    }}
                   >
                     <Plus className="h-4 w-4" />
                     Create new trip
@@ -161,7 +166,10 @@ function Header() {
                 >
                   <Link
                     href="/create-new-trip"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      setTripDetails(null);
+                    }}
                     className="flex items-center gap-2"
                   >
                     <Plus className="h-4 w-4" />

@@ -1,6 +1,25 @@
-import { suggestions } from "@/app/_components/Hero";
 import { Button } from "@/components/ui/button";
+import { Globe2 } from "lucide-react";
 import React from "react";
+
+export const suggestions = [
+  {
+    title: "Create a new trip",
+    icon: <Globe2 className="w-5 h-5 text-blue-400 group-hover:text-white" />,
+  },
+  {
+    title: "Inspire me where to go",
+    icon: <Globe2 className="w-5 h-5 text-green-500 group-hover:text-white" />,
+  },
+  {
+    title: "Discover Hidden gems",
+    icon: <Globe2 className="w-5 h-5 text-orange-500 group-hover:text-white" />,
+  },
+  {
+    title: "Adventure destination",
+    icon: <Globe2 className="w-5 h-5 text-yellow-600 group-hover:text-white" />,
+  },
+];
 
 function EmptyBoxState({
   onSelectOption,
