@@ -30,56 +30,57 @@ STRICT OUTPUT INSTRUCTIONS (no prose, no markdown, no comments):
 - Output a SINGLE valid JSON object ONLY, strictly following the schema below.
 - Use double quotes for all strings. No trailing commas. No additional keys.
 - If a value is genuinely unknown, use an empty string "" (not null).
+`;
 
-Schema:
-{
-  "trip_plan": {
-    "destination": "string",
-    "duration": "string",
-    "origin": "string",
-    "budget": "string",
-    "group_size": "string",
-    "hotels": [
-      {
-        "hotel_name": "string",
-        "hotel_address": "string",
-        "hotel_per_night": "string",
-        "hotel_image_url": "string",
-        "geo_coordinates": {
-          "latitude": "number",
-          "longitude": "number"
-        },
-        "rating": "number",
-        "description": "string"
-      }
-    ],
-    "itinerary": [
-      {
-        "day": "number",   
-        "activities": [
-          {
-            "time_of_day": "string",
-            "place_name": "string",
-            "place_details": "string",
-            "place_image_url": "string",
-            "place_rating": "number",
-            "place_address": "string",
-            "place_description": "string",
-            "ticket_price": "string",
-            "time_travel_each_location": "string",
-            "best_time_to_visit": "string",
-            "place_geo_coordinates": {
-              "latitude": "number",
-              "longitude": "number",
-            },
-            "place_name": "string",
-            "place_details": "string",
-            "place_image_url": "string",
-           },
-          }
-        ],
-       
-      }
-    ]
-  }
-}`;
+// Schema:
+// {
+//   "trip_plan": {
+//     "destination": "string",
+//     "duration": "string",
+//     "origin": "string",
+//     "budget": "string",
+//     "group_size": "string",
+//     "hotels": [
+//       {
+//         "hotel_name": "string",
+//         "hotel_address": "string",
+//         "hotel_per_night": "string",
+//         "hotel_image_url": "string",
+//         "geo_coordinates": {
+//           "latitude": "number",
+//           "longitude": "number"
+//         },
+//         "rating": "number",
+//         "description": "string"
+//       }
+//     ],
+//     "itinerary": [
+//       {
+//         "day": "number",
+//         "activities": [
+//           {
+//             "time_of_day": "string",
+//             "place_name": "string",
+//             "place_details": "string",
+//             "place_image_url": "string",
+//             "place_rating": "number",
+//             "place_address": "string",
+//             "place_description": "string",
+//             "ticket_price": "string",
+//             "time_travel_each_location": "string",
+//             "best_time_to_visit": "string",
+//             "place_geo_coordinates": {
+//               "latitude": "number",
+//               "longitude": "number",
+//             },
+//             "place_name": "string",
+//             "place_details": "string",
+//             "place_image_url": "string",
+//            },
+//           }
+//         ],
+
+//       }
+//     ]
+//   }
+// }

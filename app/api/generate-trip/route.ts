@@ -1,12 +1,12 @@
-import { prompt } from "@/data/prompt";
+import { finalPrompt } from "@/data/finalPrompt";
 import { PRO_PLAN_ID } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { aj } from "../arcjet/route";
 
 import { google } from "@ai-sdk/google";
-import { generateObject, convertToModelMessages } from "ai";
-import { chatResponseSchema } from "./chatSchema";
+import { generateObject } from "ai";
+import { tripPlanSchema } from "./structuredData";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,56 +20,43 @@ export async function POST(req: NextRequest) {
     });
 
     if (!hasPremiumAccess && decision.reason.isRateLimit()) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           error: "Too Many Requests",
           message:
             "You have reached the rate limit for today. Please try again tomorrow.",
-        }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
         },
+        { status: 429 },
       );
     }
 
     const body = await req.json();
     const messages = body?.messages ?? [];
 
-    const result = await generateObject({
+    // For final trip plan generation with structured output
+    const geminiResponse = await generateObject({
       model: google("gemini-2.0-flash-exp"),
-      schema: chatResponseSchema,
+      schema: tripPlanSchema,
       messages: [
         {
           role: "system",
-          content: prompt,
+          content: finalPrompt,
         },
         ...messages,
       ],
     });
 
-    return new Response(
-      JSON.stringify({
-        text: result.object.text,
-        ui: result.object.ui,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    return NextResponse.json({
+      trip_plan: geminiResponse.object.trip_plan,
+    });
   } catch (error: unknown) {
-    console.error("Error in Gemini AI route:", error);
-    return new Response(
-      JSON.stringify({
+    console.error("Error in Generate Trip route:", error);
+    return NextResponse.json(
+      {
         error: String(error),
         message: "Sorry, something went wrong. Please try again.",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
       },
+      { status: 500 },
     );
   }
 }

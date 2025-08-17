@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTripDetailContext } from "@/context/TripDetailContext";
 import { useUserContext } from "@/context/UserDetailContext";
 import { api } from "@/convex/_generated/api";
-import { Message } from "@/types/messages";
 import axios from "axios";
 import { useMutation } from "convex/react";
 import { Loader2, SendIcon } from "lucide-react";
@@ -18,14 +17,26 @@ import FinalUI from "./FinalUI";
 import GroupSizeUI, { type GroupSizeType } from "./GroupSizeUI";
 import TripDurationUI from "./TripDurationUI";
 
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  ui?: string;
+}
+
 function ChatBox() {
+  const [isFinalLoading, setIsFinalLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isFinalLoading, setIsFinalLoading] = useState(false);
+
   const { tripDetails, setTripDetails } = useTripDetailContext();
   const { userDetails } = useUserContext();
   const saveTripDetails = useMutation(api.tripDetails.createNewTripDetails);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSend();
+  };
 
   const onSend = async (message?: string) => {
     if (!input && !message) return;
@@ -33,7 +44,6 @@ function ChatBox() {
     const newMessage: Message = {
       role: "user",
       content: message ?? input,
-      ui: "none",
     };
 
     setInput("");
@@ -47,29 +57,23 @@ function ChatBox() {
         messages: updatedMessages,
       });
 
-      if (result?.data?.ui === "final") {
-        setMessages((prev: Message[]) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: "",
-            ui: result?.data?.ui ?? "",
-          },
-        ]);
+      const responseData =
+        typeof result.data === "string" ? JSON.parse(result.data) : result.data;
 
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: responseData.text || result.data,
+        ui: responseData.ui || "none",
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Handle final state directly
+      if (responseData.ui === "final") {
         setIsLoading(false);
         await whenFinal();
         return;
       }
-
-      setMessages((prev: Message[]) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: result?.data?.resp ?? "",
-          ui: result?.data?.ui ?? "",
-        },
-      ]);
     } catch (error: unknown) {
       console.error("Error sending message:", error);
       const errorMessage =
@@ -78,9 +82,11 @@ function ChatBox() {
               ?.data?.message
           : undefined;
 
-      toast.error(errorMessage);
+      toast.error(
+        errorMessage || "Sorry, something went wrong. Please try again.",
+      );
 
-      setMessages((prev: Message[]) => [
+      setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
@@ -98,9 +104,8 @@ function ChatBox() {
     setIsFinalLoading(true);
 
     try {
-      const result = await axios.post("/api/geminiAiModel", {
+      const result = await axios.post("/api/generate-trip", {
         messages: messages,
-        isFinal: true,
       });
 
       setTripDetails(result?.data?.trip_plan);
@@ -125,17 +130,6 @@ function ChatBox() {
         errorMessage ??
           "Sorry, there was an error generating your final trip plan. Please try again.",
       );
-
-      setMessages((prev: Message[]) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            errorMessage ??
-            "Sorry, there was an error generating your final trip plan. Please try again.",
-          ui: "none",
-        },
-      ]);
     } finally {
       setIsFinalLoading(false);
     }
@@ -153,7 +147,9 @@ function ChatBox() {
     onSend(days.toString() + " " + "days");
   };
 
-  const renderGenUI = (ui: string) => {
+  const renderGenUI = (message: Message) => {
+    const ui = message.ui || "none";
+
     switch (ui) {
       case "budget":
         return <BudgetUI onSelectBudget={onSelectBudget} />;
@@ -165,9 +161,9 @@ function ChatBox() {
         return (
           <FinalUI isFinalLoading={isFinalLoading} tripDetails={tripDetails} />
         );
+      default:
+        return null;
     }
-
-    return null;
   };
 
   return (
@@ -183,7 +179,7 @@ function ChatBox() {
       {messages.length > 0 && (
         <section className="flex-1 overflow-auto p-4">
           <div className="flex flex-col justify-end mt-2 gap-3">
-            {messages.map((message, index) => {
+            {messages.map((message: Message, index: number) => {
               const isUser = message.role === "user";
 
               if (isUser) {
@@ -203,7 +199,7 @@ function ChatBox() {
                   >
                     <div className="max-w-lg bg-gray-100 text-black px-4 py-2 rounded-md">
                       {message.content}
-                      {renderGenUI(message.ui)}
+                      {renderGenUI(message)}
                     </div>
                   </div>
                 );
@@ -234,27 +230,29 @@ function ChatBox() {
       )}
 
       <section>
-        <div className="relative rounded-2xl border p-3 sm:p-4">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Create a trip for Paris from New York"
-            className="h-28 w-full resize-none bg-transparent shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
+        <form onSubmit={handleSubmit}>
+          <div className="relative rounded-2xl border p-3 sm:p-4">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Create a trip for Paris from New York"
+              className="h-28 w-full resize-none bg-transparent shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
 
-          <Button
-            size="icon"
-            className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4"
-            onClick={() => onSend()}
-            disabled={isLoading || isFinalLoading}
-          >
-            {isLoading || isFinalLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <SendIcon className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+            <Button
+              type="submit"
+              size="icon"
+              className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4"
+              disabled={isLoading || isFinalLoading}
+            >
+              {isLoading || isFinalLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <SendIcon className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </form>
       </section>
     </div>
   );
