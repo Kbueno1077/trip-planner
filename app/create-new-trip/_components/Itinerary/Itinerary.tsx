@@ -1,38 +1,34 @@
 "use client";
 
-import { Timeline } from "@/components/ui/timeline";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Timeline } from "@/components/ui/timeline";
 import { useTripDetailContext } from "@/context/TripDetailContext";
+import React from "react";
 import { DayActivities } from "./DayActivities";
 import { HotelsSection } from "./HotelsSection";
-import Image from "next/image";
-import React from "react";
 
 export function Itinerary() {
   const { tripDetails } = useTripDetailContext();
 
   if (!tripDetails) {
     return (
-      <Card className="h-[90dvh]">
-        <CardHeader>
+      <Card className="h-[90dvh] flex flex-col">
+        <CardHeader className="flex flex-col gap-2 flex-shrink-0">
           <CardTitle>Get your trip ready</CardTitle>
           <CardDescription>Build your trip, easy and fast.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-2xl overflow-hidden">
-            <img
-              src="/trip2.jpg"
-              alt="Trip illustration"
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <CardContent className="flex-1 overflow-hidden">
+          <img
+            src="/trip2.jpg"
+            alt="Trip illustration"
+            className="w-full h-full object-cover rounded-2xl"
+          />
         </CardContent>
       </Card>
     );
