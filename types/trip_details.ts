@@ -33,6 +33,7 @@ interface ItineraryItem {
 }
 
 interface TripPlan {
+  id?: string;
   destination: string;
   duration: string;
   origin: string;

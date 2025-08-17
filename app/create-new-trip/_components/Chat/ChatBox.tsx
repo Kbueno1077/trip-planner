@@ -112,9 +112,14 @@ function ChatBox() {
       setIsFinalLoading(false);
 
       if (userDetails) {
+        const tripId = v4();
+
         await saveTripDetails({
-          tripId: v4(),
-          tripDetail: result?.data?.trip_plan,
+          tripId: tripId,
+          tripDetail: {
+            ...result?.data?.trip_plan,
+            id: tripId,
+          },
           uid: userDetails._id,
         });
       }
@@ -167,7 +172,7 @@ function ChatBox() {
   };
 
   return (
-    <div className="h-[90dvh] flex flex-col pt-10 px-3 ">
+    <div className="h-[90dvh] flex flex-col px-3">
       {messages.length === 0 && (
         <EmptyBoxState
           onSelectOption={(option) => {

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { TripPlan } from "@/types/trip_details";
+import { useRouter } from "next/navigation";
 
 function FinalUI({
   isFinalLoading,
@@ -10,6 +11,8 @@ function FinalUI({
   isFinalLoading: boolean;
   tripDetails: TripPlan | null;
 }) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col items-center space-y-6 mt-6 p-8 border border-gray-200 rounded-xl bg-gradient-to-br from-white to-gray-50">
       <div className="flex items-center space-x-3">
@@ -28,8 +31,9 @@ function FinalUI({
         className="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-300 font-medium"
         disabled={isFinalLoading}
         onClick={() => {
-          // Handle view trip action
-          console.log("View trip clicked");
+          if (tripDetails?.id) {
+            router.push(`/view/${tripDetails.id}`);
+          }
         }}
       >
         {isFinalLoading && (

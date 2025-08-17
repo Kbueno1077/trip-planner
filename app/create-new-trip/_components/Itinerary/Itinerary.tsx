@@ -63,9 +63,11 @@ export function Itinerary() {
 
 function HeroItinerary({
   tripDestination,
+
   children,
 }: {
   tripDestination: string;
+
   children: React.ReactNode;
 }) {
   const [photoUrl, setPhotoUrl] = React.useState<string | null>(null);
@@ -99,30 +101,5 @@ function HeroItinerary({
     };
   }, [tripDestination]);
 
-  return (
-    <div className="w-full">
-      <div className="relative h-48 md:h-64 w-full overflow-hidden">
-        {loading ? (
-          <Skeleton className="absolute inset-0 h-full w-full" />
-        ) : photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={`${tripDestination} hero image`}
-            fill
-            className="object-cover"
-            priority={false}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-muted" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-        <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            {tripDestination}
-          </h2>
-        </div>
-      </div>
-      {children}
-    </div>
-  );
+  return <div className="w-full">{children}</div>;
 }

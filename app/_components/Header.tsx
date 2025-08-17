@@ -25,10 +25,6 @@ const menuItems = [
     label: "Pricing",
     href: "/pricing",
   },
-  {
-    label: "Contact us",
-    href: "/contact",
-  },
 ];
 
 function Header() {

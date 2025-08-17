@@ -8,11 +8,11 @@ import { Globe2, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function CreateNewTrip() {
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 ">
-      <div className="lg:col-span-2 ">
+      <div className="lg:col-span-2">
         <ChatBox />
       </div>
 
@@ -26,15 +26,11 @@ function CreateNewTrip() {
           onClick={() => {
             setActiveIndex(activeIndex === 0 ? 1 : 0);
           }}
-          className={`absolute ${
-            activeIndex === 0 ? "top-22 right-7" : "top-8 right-8"
-          } z-10`}
+          className={`absolute h-[60px] w-[50px] top-0 right-[40px] rounded-t-none border-t-0 border-primary/50 z-[100]`}
         >
           {activeIndex === 0 ? <Globe2 /> : <Plane />}
         </Button>
       </div>
-
-      {/* <div>Map</div> */}
     </div>
   );
 }
