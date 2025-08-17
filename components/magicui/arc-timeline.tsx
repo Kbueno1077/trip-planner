@@ -235,6 +235,7 @@ export function ArcTimeline(props: ArcTimelineProps) {
                         }
                         lineIndex={lineIndex}
                         stepIndex={stepIndex}
+                        globalStepIndex={globalStepIndex}
                         circleWidth={circleWidth}
                         circleContainerRotateDeg={circleContainerRotateDeg}
                       />
@@ -312,6 +313,7 @@ export function ArcTimeline(props: ArcTimelineProps) {
                       }
                       lineIndex={lineIndex}
                       stepIndex={stepIndex}
+                      globalStepIndex={globalStepIndex}
                       circleWidth={circleWidth}
                       circleContainerRotateDeg={circleContainerRotateDeg}
                     />
@@ -335,6 +337,7 @@ interface PlaceholderLinesProps {
   isLastStep: boolean;
   lineIndex: number;
   stepIndex: number;
+  globalStepIndex: number;
   circleWidth: number;
   circleContainerRotateDeg: number;
 }
@@ -348,6 +351,7 @@ function PlaceholderLines(props: PlaceholderLinesProps) {
     boundaryPlaceholderLinesCount,
     lineIndex,
     stepIndex,
+    globalStepIndex,
     circleWidth,
     circleContainerRotateDeg,
   } = props;
@@ -372,7 +376,7 @@ function PlaceholderLines(props: PlaceholderLinesProps) {
           const fillAngle = getAngle(fillIndex);
           return (
             <div
-              key={`${lineIndex}-${stepIndex}-${fillIndex}`}
+              key={`${globalStepIndex}-${fillIndex}-${isFirstStep ? "first" : "fill"}`}
               className="absolute left-1/2 top-0 h-[34px] w-[1px] -translate-x-1/2"
               style={{
                 transformOrigin: `50% ${circleWidth / 2}px`,
