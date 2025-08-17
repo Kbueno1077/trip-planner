@@ -2,11 +2,11 @@ import { prompt } from "@/data/prompt";
 import { PRO_PLAN_ID } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
-import { aj } from "../arcjet/route";
 
 import { google } from "@ai-sdk/google";
 import { generateObject, convertToModelMessages } from "ai";
 import { chatResponseSchema } from "./chatSchema";
+import { aj } from "@/arcject/config";
 
 export async function POST(req: NextRequest) {
   try {

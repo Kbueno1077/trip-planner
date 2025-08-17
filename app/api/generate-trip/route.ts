@@ -2,7 +2,7 @@ import { finalPrompt } from "@/data/finalPrompt";
 import { PRO_PLAN_ID } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { aj } from "../arcjet/route";
+import { aj } from "@/arcject/config";
 
 import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
