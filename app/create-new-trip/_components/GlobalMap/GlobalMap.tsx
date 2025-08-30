@@ -74,9 +74,8 @@ function GlobalMap({
 
   // Default styles that will be merged with custom style object
   const defaultStyle: React.CSSProperties = {
-    height: "85dvh",
+    height: "80dvh",
     borderRadius: "20px",
-    margin: "20px",
   };
 
   // Merge default styles with custom style object

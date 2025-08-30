@@ -50,7 +50,7 @@ function MapPopup() {
           </Button>
         </div>
         <div className="h-full pb-16">
-          <GlobalMap style={{ height: "calc(85dvh - 50px)" }} />
+          <GlobalMap style={{ height: "calc(85dvh - 50px)", margin: "20px" }} />
         </div>
       </div>
     </>

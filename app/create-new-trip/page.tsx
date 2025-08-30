@@ -6,6 +6,13 @@ import { Itinerary } from "./_components/Itinerary/Itinerary";
 import GlobalMap from "./_components/GlobalMap/GlobalMap";
 import { Globe2, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 function CreateNewTrip() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -16,9 +23,19 @@ function CreateNewTrip() {
         <ChatBox />
       </div>
 
-      <div className="col-span-3 relative">
+      <div className="col-span-3 relative mt-2 lg:mt-0 px-3 lg:px-0">
         {activeIndex === 0 && <Itinerary />}
-        {activeIndex === 1 && <GlobalMap />}
+        {activeIndex === 1 && (
+          <Card className="h-[90dvh] flex flex-col">
+            <CardHeader className="flex flex-col gap-2 flex-shrink-0">
+              <CardTitle>Trip Map</CardTitle>
+              <CardDescription>Build your trip, easy and fast.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden">
+              <GlobalMap />
+            </CardContent>
+          </Card>
+        )}
 
         <Button
           size={"icon"}

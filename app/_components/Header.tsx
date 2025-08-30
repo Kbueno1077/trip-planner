@@ -97,53 +97,107 @@ function Header() {
         </div>
 
         {/* Mobile toggle */}
-        <div className="flex items-center gap-2 md:hidden">
-          <Button
-            aria-label="Toggle menu"
-            variant="ghost"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-md p-2"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-
+        <div className="flex items-center gap-3 md:hidden">
           <SignedIn>
             <UserButton />
           </SignedIn>
+
+          <Button
+            aria-label="Toggle menu"
+            variant="ghost"
+            size="icon"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((v) => !v)}
+          >
+            <Menu
+              className={`h-6 w-6 transition-all duration-300 ${
+                isOpen
+                  ? "rotate-90 opacity-0 scale-75"
+                  : "rotate-0 opacity-100 scale-100"
+              }`}
+            />
+            <X
+              className={`absolute h-6 w-6 transition-all duration-300 ${
+                isOpen
+                  ? "rotate-0 opacity-100 scale-100"
+                  : "rotate-90 opacity-0 scale-75"
+              }`}
+            />
+          </Button>
         </div>
       </div>
 
-      {/* Mobile panel */}
-      {isOpen && (
-        <div className="mx-auto block max-w-6xl p-4 pt-0 md:hidden">
-          <nav className="flex flex-col gap-2 rounded-lg border p-3 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            {menuItems.map((item) => (
-              <Button
+      {/* Mobile panel overlay with enhanced animations */}
+      <div
+        className={`absolute top-full left-0 rounded-lg right-0 bg-background/95 backdrop-blur-xl border-b shadow-lg transition-all duration-300 ease-out md:hidden z-40 ${
+          isOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}
+      >
+        <div className="mx-auto max-w-6xl p-4">
+          <nav>
+            {menuItems.map((item, index) => (
+              <div
                 key={item.label}
-                variant="ghost"
-                className="justify-start"
-                asChild
+                className={`transform transition-all duration-300 ease-out ${
+                  isOpen
+                    ? "translate-y-0 opacity-100"
+                    : "-translate-y-3 opacity-0"
+                }`}
+                style={{
+                  transitionDelay: isOpen ? `${index * 60}ms` : "0ms",
+                }}
               >
-                <Link href={item.href} onClick={() => setIsOpen(false)}>
-                  {item.label}
-                </Link>
-              </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full hover:scale-[1.02] hover:bg-accent/80 transition-all duration-200"
+                  asChild
+                >
+                  <Link href={item.href} onClick={() => setIsOpen(false)}>
+                    {item.label}
+                  </Link>
+                </Button>
+              </div>
             ))}
 
             <SignedOut>
-              <SignInButton mode="modal">
-                <InteractiveHoverButton className="w-full">
-                  Get Started
-                </InteractiveHoverButton>
-              </SignInButton>
+              <div
+                className={`transform transition-all duration-300 ease-out mt-2 pt-2 border-t ${
+                  isOpen
+                    ? "translate-y-0 opacity-100"
+                    : "-translate-y-3 opacity-0"
+                }`}
+                style={{
+                  transitionDelay: isOpen
+                    ? `${menuItems.length * 60}ms`
+                    : "0ms",
+                }}
+              >
+                <SignInButton mode="modal">
+                  <InteractiveHoverButton className="w-full">
+                    Get Started
+                  </InteractiveHoverButton>
+                </SignInButton>
+              </div>
             </SignedOut>
 
             <SignedIn>
-              <div className="border-t pt-2 mt-2">
+              <div
+                className={`border-t pt-2 mt-2 transform transition-all duration-300 ease-out ${
+                  isOpen
+                    ? "translate-y-0 opacity-100"
+                    : "-translate-y-3 opacity-0"
+                }`}
+                style={{
+                  transitionDelay: isOpen
+                    ? `${(menuItems.length + 1) * 60}ms`
+                    : "0ms",
+                }}
+              >
                 <Button
                   variant="ghost"
-                  className="justify-start w-full"
+                  className="justify-start w-full hover:scale-[1.02] hover:bg-accent/80 transition-all duration-200"
                   asChild
                 >
                   <Link
@@ -157,7 +211,7 @@ function Header() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="justify-start w-full"
+                  className="justify-start w-full hover:scale-[1.02] hover:bg-accent/80 transition-all duration-200"
                   asChild
                 >
                   <Link
@@ -176,7 +230,7 @@ function Header() {
             </SignedIn>
           </nav>
         </div>
-      )}
+      </div>
     </header>
   );
 }
