@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTripDetailContext } from "@/context/TripDetailContext";
@@ -17,10 +17,10 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import type { TripPlan } from "@/types/trip_details";
 import { useQuery } from "convex/react";
-import { Calendar, DollarSign, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Calendar, DollarSign, Users } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type TripDoc = Omit<Doc<"tripDetails">, "tripDetail" | "uid"> & {
   tripDetail: TripPlan;
@@ -194,15 +194,12 @@ function Trips() {
                 )}
               </CardContent>
               <CardFooter>
-                <Button
-                  variant="secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenTrip(trip);
-                  }}
-                >
-                  Open
-                </Button>
+                <div className="flex items-center justify-end gap-2 w-full">
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm">View Trip</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
               </CardFooter>
             </Card>
           );

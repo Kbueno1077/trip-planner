@@ -61,10 +61,11 @@ function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Badge className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary/10 text-primary border-primary/20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary/20 text-primary border-primary/20 rounded-full border">
               <SparklesIcon className="h-4 w-4" />
               AI-Powered Trip Planning
-            </Badge>
+              <SparklesIcon className="h-4 w-4" />
+            </div>
           </motion.div>
 
           <motion.div
