@@ -1,14 +1,17 @@
 "use client";
 
-import { Timeline } from "@/components/ui/timeline";
+import GlobalMap from "@/app/create-new-trip/_components/GlobalMap/GlobalMap";
+import { DayActivities } from "@/app/create-new-trip/_components/Itinerary/DayActivities";
+import { HotelsSection } from "@/app/create-new-trip/_components/Itinerary/HotelsSection";
 import {
   Card,
-  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Timeline } from "@/components/ui/timeline";
+import { useTripDetailContext } from "@/context/TripDetailContext";
 import { useUserContext } from "@/context/UserDetailContext";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
@@ -16,10 +19,7 @@ import type { TripPlan } from "@/types/trip_details";
 import { useQuery } from "convex/react";
 import Image from "next/image";
 import React from "react";
-import { DayActivities } from "@/app/create-new-trip/_components/Itinerary/DayActivities";
-import { HotelsSection } from "@/app/create-new-trip/_components/Itinerary/HotelsSection";
-import GlobalMap from "@/app/create-new-trip/_components/GlobalMap/GlobalMap";
-import { useTripDetailContext } from "@/context/TripDetailContext";
+import MapPopup from "./MapPopup";
 
 type TripDoc = Omit<Doc<"tripDetails">, "tripDetail" | "uid"> & {
   tripDetail: TripPlan;
@@ -33,6 +33,7 @@ interface TripViewerProps {
 export function TripViewer({ tripId }: TripViewerProps) {
   const { userDetails } = useUserContext();
   const { setTripDetails } = useTripDetailContext();
+  const [isMapOpen, setIsMapOpen] = React.useState(false);
 
   const trips = useQuery(
     api.tripDetails.getTripById,
@@ -104,15 +105,11 @@ export function TripViewer({ tripId }: TripViewerProps) {
 
   return (
     <HeroItinerary tripDestination={tripDetails.destination}>
-      <div className="lg:grid grid-cols-5 pt-10">
-        <div className="w-full lg:col-span-3">
-          <Timeline data={data} tripDetails={tripDetails} />
-        </div>
-
-        <div className="w-full lg:col-span-2">
-          <GlobalMap />
-        </div>
+      <div className="w-full px-4 py-8">
+        <Timeline data={data} tripDetails={tripDetails} />
       </div>
+
+      <MapPopup />
     </HeroItinerary>
   );
 }
@@ -157,7 +154,7 @@ function HeroItinerary({
 
   return (
     <div className="w-full">
-      <div className="relative h-48 md:h-64 w-full overflow-hidden">
+      <div className="relative h-64 md:h-96 w-full overflow-hidden">
         {loading ? (
           <Skeleton className="absolute inset-0 h-full w-full" />
         ) : photoUrl ? (
@@ -173,9 +170,11 @@ function HeroItinerary({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
         <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
-            {tripDestination}
-          </h2>
+          <div className="bg-white/10 w-fit backdrop-blur-sm rounded-lg p-3  shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-primary drop-shadow-lg">
+              {tripDestination}
+            </h2>
+          </div>
         </div>
       </div>
       {children}

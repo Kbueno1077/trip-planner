@@ -40,7 +40,7 @@ export const Timeline = ({
       className="w-full bg-white dark:bg-neutral-950 font-sans md:px-2"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto py-5 px-4">
+      <div className="mx-auto py-5 px-4">
         <h2 className="text-lg md:text-4xl mb-4 text-black dark:text-white max-w-4xl">
           Your Trip Itinerary from{" "}
           <strong className="text-primary">{tripDetails.origin}</strong> to{" "}
@@ -70,7 +70,7 @@ export const Timeline = ({
         </div>
       </div>
 
-      <div ref={ref} className="relative max-w-7xl mx-auto pb-20">
+      <div ref={ref} className="relative mx-auto pb-20">
         {data.map((item, index) => (
           <div
             key={index}

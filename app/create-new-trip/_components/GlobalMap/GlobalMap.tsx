@@ -5,7 +5,19 @@ import mapboxgl from "mapbox-gl"; //
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef } from "react";
 
-function GlobalMap() {
+interface GlobalMapProps {
+  style?: React.CSSProperties;
+  mapStyle?: string;
+  center?: [number, number];
+  zoom?: number;
+}
+
+function GlobalMap({
+  style,
+  mapStyle = "mapbox://styles/mapbox/streets-v12",
+  center = [-74.5, 40],
+  zoom = 1.7,
+}: GlobalMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const { tripDetails } = useTripDetailContext();
 
@@ -14,9 +26,9 @@ function GlobalMap() {
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current ?? "",
-      style: "mapbox://styles/mapbox/streets-v12", // style URL
-      center: [-74.5, 40], // starting position [lng, lat]
-      zoom: 1.7, // starting zoom
+      style: mapStyle, // style URL
+      center: center, // starting position [lng, lat]
+      zoom: zoom, // starting zoom
       projection: "globe",
     });
 
@@ -58,15 +70,24 @@ function GlobalMap() {
     return () => {
       markers.forEach((marker) => marker.remove());
     };
-  }, [tripDetails]);
+  }, [tripDetails, mapStyle, center, zoom]);
+
+  // Default styles that will be merged with custom style object
+  const defaultStyle: React.CSSProperties = {
+    height: "85dvh",
+    borderRadius: "20px",
+    margin: "20px",
+  };
+
+  // Merge default styles with custom style object
+  const finalStyle: React.CSSProperties = {
+    ...defaultStyle,
+    ...style,
+  };
 
   return (
     <div>
-      <div
-        id="map"
-        ref={mapContainerRef}
-        style={{ height: "85dvh", borderRadius: "20px", margin: "20px" }}
-      ></div>
+      <div id="map" ref={mapContainerRef} style={finalStyle}></div>
     </div>
   );
 }
