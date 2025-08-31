@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useTripDetailContext } from "@/context/TripDetailContext";
-import { useUserContext } from "@/context/UserDetailContext";
 import { useGenerativeActions } from "@/hooks/use-generative-actions";
 import { useChat } from "@ai-sdk/react";
 import { useGenerativeUI, useRenderGenerativeUI } from "@front10/generative-ui";
@@ -27,9 +26,7 @@ import TripDurationUI, {
 
 function ChatBox() {
   const [isFinalLoading, setIsFinalLoading] = useState(false);
-
   const { tripDetails, setTripDetails } = useTripDetailContext();
-  const { userDetails } = useUserContext();
   const [input, setInput] = useState("");
 
   const { messages, sendMessage, status, error, stop } = useChat<ChatMessages>({

@@ -23,7 +23,13 @@ export async function POST(request: NextRequest) {
       { headers },
     );
 
-    const placeRefName = result.data.places[0]?.photos[0]?.name;
+    if (!result.data.places || result.data.places.length === 0) {
+      return NextResponse.json({
+        photo: null,
+      });
+    }
+
+    const placeRefName = result.data.places[0]?.photos?.[0]?.name;
 
     if (!placeRefName) {
       return NextResponse.json({
@@ -37,7 +43,7 @@ export async function POST(request: NextRequest) {
       photo: PHOTO_URL,
     });
   } catch (error) {
-    console.error("🚀 ~ POST ~ error:", error);
+    console.error("error in google place details route:", error);
     return NextResponse.json(
       { error: "Failed to fetch place details" },
       { status: 500 },
