@@ -1,6 +1,7 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { createUserArgs } from "./validators";
+import { v } from "convex/values";
 
 export const createNewUser = mutation({
   args: createUserArgs,
@@ -22,5 +23,19 @@ export const createNewUser = mutation({
       throw new Error("Failed to load inserted user document");
     }
     return userDoc;
+  },
+});
+
+export const getUserByEmail = query({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args): Promise<Doc<"users"> | null> => {
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), args.email))
+      .first();
+
+    return user;
   },
 });

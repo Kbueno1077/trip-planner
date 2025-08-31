@@ -4,18 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useTripDetailContext } from "@/context/TripDetailContext";
 import { useUserContext } from "@/context/UserDetailContext";
-import { api } from "@/convex/_generated/api";
 import { useGenerativeActions } from "@/hooks/use-generative-actions";
 import { useChat } from "@ai-sdk/react";
 import { useGenerativeUI, useRenderGenerativeUI } from "@front10/generative-ui";
-import { useMutation } from "convex/react";
 import { Loader2, SendIcon } from "lucide-react";
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
-import { v4 } from "uuid";
 
 import { ChatMessages } from "@/app/api/chat/route";
-import { DefaultChatTransport, ToolUIPart } from "ai";
+import { DefaultChatTransport } from "ai";
 import BudgetUI, { BudgetUIError, BudgetUILoading } from "./BudgetUI";
 import EmptyBoxState from "./EmptyBoxState";
 import FinalUI, { FinalUIError, FinalUILoading } from "./FinalUI";
@@ -30,15 +27,9 @@ import TripDurationUI, {
 
 function ChatBox() {
   const [isFinalLoading, setIsFinalLoading] = useState(false);
+
   const { tripDetails, setTripDetails } = useTripDetailContext();
   const { userDetails } = useUserContext();
-  const saveTripDetails = useMutation(api.tripDetails.createNewTripDetails);
-
-  // Front10 Generative UI hooks
-  const { registerComponent } = useGenerativeUI();
-  const renderGenerativeUI = useRenderGenerativeUI();
-  const { handleUserAction } = useGenerativeActions();
-
   const [input, setInput] = useState("");
 
   const { messages, sendMessage, status, error, stop } = useChat<ChatMessages>({
@@ -47,101 +38,12 @@ function ChatBox() {
     }),
   });
 
-  // Register components with the generative UI system
-  useLayoutEffect(() => {
-    registerComponent({
-      toolId: "tool-showBudgetUI",
-      LoadingComponent: BudgetUILoading,
-      SuccessComponent: ({ onAction }) => (
-        <BudgetUI
-          onSelectBudget={(budget) => {
-            onAction?.({
-              action: "select_budget",
-              data: { budget: budget.title, description: budget.desc },
-            });
-          }}
-        />
-      ),
-      ErrorComponent: BudgetUIError,
-      onUserAction: (action) => {
-        const content = handleUserAction(action);
-        onSend(content);
-      },
-    });
+  // Front10 Generative UI hooks
+  const { registerComponent } = useGenerativeUI();
+  const renderGenerativeUI = useRenderGenerativeUI();
+  const { handleUserAction } = useGenerativeActions({ sendMessage });
 
-    registerComponent({
-      toolId: "tool-showGroupSizeUI",
-      LoadingComponent: GroupSizeUILoading,
-      SuccessComponent: ({ onAction }) => (
-        <GroupSizeUI
-          onSelectGroupSize={(groupSize) => {
-            onAction?.({
-              action: "select_group_size",
-              data: { groupSize: groupSize.title, people: groupSize.people },
-            });
-          }}
-        />
-      ),
-      ErrorComponent: GroupSizeUIError,
-      onUserAction: (action) => {
-        const content = handleUserAction(action);
-        onSend(content);
-      },
-    });
-
-    registerComponent({
-      toolId: "tool-showTripDurationUI",
-      LoadingComponent: TripDurationUILoading,
-      SuccessComponent: ({ onAction }) => (
-        <TripDurationUI
-          onSelectDuration={(duration) => {
-            onAction?.({
-              action: "select_duration",
-              data: { duration: `${duration} days` },
-            });
-          }}
-        />
-      ),
-      ErrorComponent: TripDurationUIError,
-      onUserAction: (action) => {
-        const content = handleUserAction(action);
-        onSend(content);
-      },
-    });
-
-    registerComponent({
-      toolId: "tool-showFinalUI",
-      LoadingComponent: FinalUILoading,
-      SuccessComponent: ({ onAction }) => (
-        <FinalUI isFinalLoading={isFinalLoading} tripDetails={tripDetails} />
-      ),
-      ErrorComponent: FinalUIError,
-      onUserAction: (action) => {
-        const content = handleUserAction(action);
-        whenFinal();
-      },
-    });
-  }, [registerComponent, handleUserAction, isFinalLoading, tripDetails]);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (input.trim()) {
-      onSend(input);
-    }
-  };
-
-  const onSend = async (message?: string) => {
-    if (!input && !message) return;
-
-    sendMessage({
-      text: message ?? input,
-    });
-
-    setInput("");
-  };
-
-  const whenFinal = async () => {
+  const whenFinal = useCallback(async () => {
     setIsFinalLoading(true);
 
     try {
@@ -156,21 +58,10 @@ function ChatBox() {
       });
 
       const result = await response.json();
+      console.log("🚀 ~ ChatBox ~ result:", result);
+
       setTripDetails(result?.data?.trip_plan);
       setIsFinalLoading(false);
-
-      if (userDetails) {
-        const tripId = v4();
-
-        await saveTripDetails({
-          tripId: tripId,
-          tripDetail: {
-            ...result?.data?.trip_plan,
-            id: tripId,
-          },
-          uid: userDetails._id,
-        });
-      }
     } catch (error: unknown) {
       console.error("Error in final step:", error);
       const errorMessage =
@@ -183,40 +74,109 @@ function ChatBox() {
         errorMessage ??
           "Sorry, there was an error generating your final trip plan. Please try again.",
       );
+      setIsFinalLoading(false);
     } finally {
       setIsFinalLoading(false);
     }
-  };
+  }, [messages, setTripDetails]);
 
-  const renderGenUI = (part: ToolUIPart) => {
-    let state:
-      | "input-streaming"
-      | "input-available"
-      | "output-available"
-      | "output-error" = "output-available";
+  // Register components with the generative UI system
+  useLayoutEffect(() => {
+    console.log("🔧 Registering components...");
 
-    if (status === "streaming" || status === "submitted") {
-      state = "input-streaming";
-    }
-
-    const renderedComponent = renderGenerativeUI({
-      toolId: part.type,
-      state,
-      input: part.input,
-      output: { success: true },
-      toolCallId: part.toolCallId,
+    registerComponent({
+      toolId: "showBudgetUI",
+      LoadingComponent: BudgetUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <BudgetUI
+          onSelectBudget={(budget) => {
+            onAction?.({
+              action: "select_budget",
+              data: { budget: budget.title, description: budget.desc },
+            });
+          }}
+        />
+      ),
+      ErrorComponent: BudgetUIError,
+      onUserAction: (action) => {
+        handleUserAction(action);
+      },
     });
 
-    if (renderedComponent) {
-      return <div>{renderedComponent}</div>;
-    }
+    registerComponent({
+      toolId: "showGroupSizeUI",
+      LoadingComponent: GroupSizeUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <GroupSizeUI
+          onSelectGroupSize={(groupSize) => {
+            onAction?.({
+              action: "select_group_size",
+              data: { groupSize: groupSize.title, people: groupSize.people },
+            });
+          }}
+        />
+      ),
+      ErrorComponent: GroupSizeUIError,
+      onUserAction: (action) => {
+        handleUserAction(action);
+      },
+    });
 
-    // Fallback for unregistered tools
-    return (
-      <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-        Tool not registered: {part.type}
-      </div>
-    );
+    registerComponent({
+      toolId: "showTripDurationUI",
+      LoadingComponent: TripDurationUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <TripDurationUI
+          onSelectDuration={(duration) => {
+            onAction?.({
+              action: "select_duration",
+              data: { duration: `${duration} days` },
+            });
+          }}
+        />
+      ),
+      ErrorComponent: TripDurationUIError,
+      onUserAction: (action) => {
+        handleUserAction(action);
+      },
+    });
+
+    registerComponent({
+      toolId: "showFinalUI",
+      LoadingComponent: FinalUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <FinalUI
+          isFinalLoading={isFinalLoading}
+          tripDetails={tripDetails}
+          onAction={onAction}
+        />
+      ),
+      ErrorComponent: FinalUIError,
+      onUserAction: (action) => {
+        // handleUserAction(action);
+        whenFinal();
+      },
+    });
+
+    console.log("✅ Components registered successfully");
+  }, [
+    registerComponent,
+    handleUserAction,
+    isFinalLoading,
+    tripDetails,
+    whenFinal,
+  ]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (input.trim()) {
+      sendMessage({
+        text: input,
+      });
+
+      setInput("");
+    }
   };
 
   return (
@@ -224,7 +184,9 @@ function ChatBox() {
       {messages.length === 0 && (
         <EmptyBoxState
           onSelectOption={(option) => {
-            onSend(option);
+            sendMessage({
+              text: option,
+            });
           }}
         />
       )}
@@ -246,32 +208,76 @@ function ChatBox() {
                     }`}
                   >
                     {message.parts?.map((part, index) => {
-                      switch (part.type) {
-                        case "text":
-                          return (
-                            <div
-                              key={`${message.id}-${part.text}-${index}`}
-                              className="whitespace-pre-wrap leading-relaxed"
-                            >
-                              {part.text}
-                            </div>
-                          );
+                      if (part.type.startsWith("tool-")) {
+                        const toolId = part.type.replace("tool-", "");
 
-                        case "tool-showBudgetUI":
-                        case "tool-showGroupSizeUI":
-                        case "tool-showTripDurationUI":
-                        case "tool-showFinalUI":
-                          return (
-                            <div
-                              key={`${message.id}-${part.toolCallId}-${index}`}
-                            >
-                              {renderGenUI(part)}
-                            </div>
-                          );
+                        // Use type guards to safely access properties
+                        const toolCallId =
+                          "toolCallId" in part
+                            ? part.toolCallId
+                            : `tool-${index}`;
+                        const state =
+                          "state" in part ? part.state : "input-available";
+                        const input = "input" in part ? part.input : undefined;
+                        const output =
+                          "output" in part ? part.output : undefined;
+                        const error =
+                          "errorText" in part ? part.errorText : undefined;
 
-                        default:
-                          return null;
+                        console.log("🔧 Tool part:", {
+                          toolId,
+                          state,
+                          input,
+                          output,
+                          error,
+                          toolCallId,
+                          partType: part.type,
+                        });
+
+                        const renderedComponent = renderGenerativeUI({
+                          toolId,
+                          state: state as
+                            | "input-streaming"
+                            | "input-available"
+                            | "output-available"
+                            | "output-error",
+                          input,
+                          output,
+                          error,
+                          toolCallId,
+                        });
+
+                        console.log(
+                          "🎨 Rendered component:",
+                          renderedComponent,
+                        );
+
+                        if (renderedComponent) {
+                          return (
+                            <div key={toolCallId}>{renderedComponent}</div>
+                          );
+                        }
+
+                        // Fallback for unregistered tools
+                        return (
+                          <div
+                            key={toolCallId}
+                            className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+                          >
+                            Tool not registered: {toolId}
+                          </div>
+                        );
                       }
+
+                      if (part.type === "text") {
+                        return (
+                          <div key={`${message.id}-${part.text}-${index}`}>
+                            {part.text}
+                          </div>
+                        );
+                      }
+
+                      return null;
                     })}
                   </div>
                 </div>

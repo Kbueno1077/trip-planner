@@ -8,6 +8,8 @@ import { aj } from "@/arcject/config";
 import {
   convertToModelMessages,
   InferUITools,
+  smoothStream,
+  stepCountIs,
   streamText,
   tool,
   UIDataTypes,
@@ -17,30 +19,66 @@ import { z } from "zod";
 
 const tools = {
   showBudgetUI: tool({
-    description: "Show budget selection UI to the user",
+    description:
+      "Show budget selection UI to the user. Only use this when you need to ask about budget preferences.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the budget UI"),
     }),
+    execute: async ({ message }) => {
+      console.log("🔧 showBudgetUI executed with message:", message);
+      return {
+        message,
+        uiType: "budget-selection",
+        status: "ready",
+      };
+    },
   }),
   showGroupSizeUI: tool({
-    description: "Show group size selection UI to the user",
+    description:
+      "Show group size selection UI to the user. Only use this when you need to ask about group size.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the group size UI"),
     }),
+    execute: async ({ message }) => {
+      console.log("🔧 showGroupSizeUI executed with message:", message);
+      return {
+        message,
+        uiType: "group-size-selection",
+        status: "ready",
+      };
+    },
   }),
   showTripDurationUI: tool({
-    description: "Show trip duration selection UI to the user",
+    description:
+      "Show trip duration selection UI to the user. Only use this when you need to ask about trip duration.",
     inputSchema: z.object({
       message: z
         .string()
         .describe("Message to display with the trip duration UI"),
     }),
+    execute: async ({ message }) => {
+      console.log("🔧 showTripDurationUI executed with message:", message);
+      return {
+        message,
+        uiType: "trip-duration-selection",
+        status: "ready",
+      };
+    },
   }),
   showFinalUI: tool({
-    description: "Show final trip generation UI to the user",
+    description:
+      "Show final trip generation UI to the user. Only use this when all required information has been collected.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the final UI"),
     }),
+    execute: async ({ message }) => {
+      console.log("🔧 showFinalUI executed with message:", message);
+      return {
+        message,
+        uiType: "final-trip-generation",
+        status: "ready",
+      };
+    },
   }),
 };
 
@@ -79,10 +117,12 @@ export async function POST(req: NextRequest) {
       model: openai("gpt-4.1-nano"),
       tools,
       system: prompt,
+      experimental_transform: smoothStream({ chunking: "word" }),
       messages: convertToModelMessages(messages, {
         ignoreIncompleteToolCalls: true,
         tools: tools,
       }),
+      stopWhen: stepCountIs(1),
     });
 
     return result.toUIMessageStreamResponse();

@@ -1,5 +1,8 @@
 "use client";
 
+import { ChatMessages } from "@/app/api/chat/route";
+import { generateUUID } from "@/lib/utils";
+
 export interface UserAction {
   toolId: string;
   toolCallId?: string;
@@ -8,34 +11,44 @@ export interface UserAction {
   context?: any;
 }
 
-export function useGenerativeActions() {
+export function useGenerativeActions({
+  sendMessage,
+}: {
+  sendMessage: (message: ChatMessages) => void;
+}) {
   const handleUserAction = (action: UserAction) => {
     // Create descriptive messages based on actions
     let content = "";
 
     switch (action.action) {
       case "select_budget":
-        content = `I selected the budget: ${action.data?.budget || "this budget"}`;
+        content = `I have selected my budget preference: ${action.data?.budget || "this budget"}. Please proceed to the next question.`;
         break;
       case "select_group_size":
-        content = `I selected group size: ${action.data?.groupSize || "this group size"}`;
+        content = `I have selected my group size: ${action.data?.groupSize || "this group size"} (${action.data?.people || ""} people). Please proceed to the next question.`;
         break;
       case "select_duration":
-        content = `I selected duration: ${action.data?.duration || "this duration"}`;
+        content = `I have selected my trip duration: ${action.data?.duration || "this duration"}. Please proceed to the next question.`;
         break;
       case "generate_final":
-        content = `Please generate my final trip plan`;
+        content = `I have provided all the required information. Please generate my final trip plan.`;
         break;
       default:
         content = `I performed the action: ${action.action}`;
     }
 
-    // For now, we'll just log the action
-    // In the future, this can be integrated with your chat system
-    console.log("User action:", action);
-    console.log("Generated content:", content);
-
-    return content;
+    // Send to LLM using sendMessage (Vercel AI SDK v5)
+    console.log("action", action);
+    sendMessage({
+      role: "user",
+      id: generateUUID(),
+      parts: [
+        {
+          type: "text",
+          text: content,
+        },
+      ],
+    });
   };
 
   return { handleUserAction };
