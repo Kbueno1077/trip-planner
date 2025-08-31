@@ -23,7 +23,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node build.js",
     "dev": "tsup --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"

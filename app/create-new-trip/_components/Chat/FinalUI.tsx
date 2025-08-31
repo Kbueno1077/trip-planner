@@ -4,6 +4,37 @@ import { Button } from "@/components/ui/button";
 import { TripPlan } from "@/types/trip_details";
 import { useRouter } from "next/navigation";
 
+// Loading Component
+export const FinalUILoading = ({ input }: { input?: { message?: string } }) => (
+  <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+    <div className="flex items-center space-x-2">
+      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+      <span className="text-green-800">
+        {input?.message || "Generating final trip plan..."}
+      </span>
+    </div>
+  </div>
+);
+
+// Error Component
+export const FinalUIError = ({
+  error,
+  input,
+}: {
+  error: string;
+  input?: { message?: string };
+}) => (
+  <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+    <div className="text-red-800">
+      <strong>Error generating trip:</strong> {error}
+    </div>
+    {input?.message && (
+      <div className="text-sm text-red-600 mt-1">Context: {input.message}</div>
+    )}
+  </div>
+);
+
+// Success Component (Main Component)
 function FinalUI({
   isFinalLoading,
   tripDetails,

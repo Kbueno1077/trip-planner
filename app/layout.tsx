@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { GenerativeUIProvider } from "@front10/generative-ui";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -37,7 +38,9 @@ export default function RootLayout({
           className={`${outfit.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <Toaster />
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            <GenerativeUIProvider>{children}</GenerativeUIProvider>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>

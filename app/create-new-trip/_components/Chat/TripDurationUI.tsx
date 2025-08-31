@@ -3,6 +3,39 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+// Loading Component
+export const TripDurationUILoading = ({ input }: { input?: { message?: string } }) => (
+  <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+    <div className="flex items-center space-x-2">
+      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+      <span className="text-blue-800">
+        {input?.message || "Loading duration options..."}
+      </span>
+    </div>
+  </div>
+);
+
+// Error Component
+export const TripDurationUIError = ({ 
+  error, 
+  input 
+}: { 
+  error: string; 
+  input?: { message?: string } 
+}) => (
+  <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+    <div className="text-red-800">
+      <strong>Error loading duration:</strong> {error}
+    </div>
+    {input?.message && (
+      <div className="text-sm text-red-600 mt-1">
+        Context: {input.message}
+      </div>
+    )}
+  </div>
+);
+
+// Success Component (Main Component)
 function TripDurationUI({
   onSelectDuration,
 }: {
