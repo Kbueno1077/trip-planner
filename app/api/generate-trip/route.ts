@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         ignoreIncompleteToolCalls: true,
       }),
     });
-
+    let convexTripId = null;
     // Save trip details to Convex if user is authenticated
     if (user?.primaryEmailAddress?.emailAddress) {
       try {
@@ -57,15 +57,19 @@ export async function POST(req: NextRequest) {
           const tripId = v4();
 
           // Save trip details to Convex using server-side mutation
-          await fetchMutation(api.tripDetails.createNewTripDetails, {
-            tripId: tripId,
-            tripDetail: {
-              ...geminiResponse.object.trip_plan,
-              id: tripId,
+          const newTripDetails = await fetchMutation(
+            api.tripDetails.createNewTripDetails,
+            {
+              tripId: tripId,
+              tripDetail: {
+                ...geminiResponse.object.trip_plan,
+                id: tripId,
+              },
+              uid: userDoc._id,
             },
-            uid: userDoc._id,
-          });
+          );
 
+          convexTripId = newTripDetails._id;
           console.log("✅ Trip details saved to Convex successfully");
         }
       } catch (error) {
@@ -76,7 +80,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      trip_plan: geminiResponse.object.trip_plan,
+      trip_plan: { ...geminiResponse.object.trip_plan, id: convexTripId },
     });
   } catch (error: unknown) {
     console.error("Error in Generate Trip route:", error);

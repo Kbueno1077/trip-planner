@@ -1,8 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useTripDetailContext } from "@/context/TripDetailContext";
 import { TripPlan } from "@/types/trip_details";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { ChatMessages } from "@/app/api/chat/route";
 
 // Loading Component
 export const FinalUILoading = ({ input }: { input?: { message?: string } }) => (
@@ -34,18 +38,55 @@ export const FinalUIError = ({
 
 // Success Component (Main Component)
 function FinalUI({
-  isFinalLoading,
-  tripDetails,
   onAction,
+  messages,
 }: {
-  isFinalLoading: boolean;
-  tripDetails: TripPlan | null;
   onAction?: (action: {
     action: string;
     data?: Record<string, unknown>;
   }) => void;
+  messages: ChatMessages[];
 }) {
   const router = useRouter();
+  const { tripDetails, setTripDetails } = useTripDetailContext();
+  const [isFinalLoading, setIsFinalLoading] = useState(false);
+
+  const whenFinal = useCallback(async () => {
+    setIsFinalLoading(true);
+
+    try {
+      const response = await fetch("/api/generate-trip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: messages,
+        }),
+      });
+
+      const result = await response.json();
+      console.log("🚀 ~ FinalUI ~ result:", result);
+
+      setTripDetails(result?.trip_plan);
+      setIsFinalLoading(false);
+    } catch (error: unknown) {
+      console.error("Error in final step:", error);
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
+
+      toast.error(
+        errorMessage ??
+          "Sorry, there was an error generating your final trip plan. Please try again.",
+      );
+      setIsFinalLoading(false);
+    } finally {
+      setIsFinalLoading(false);
+    }
+  }, [messages, setTripDetails]);
 
   const handleGenerateTrip = () => {
     if (onAction) {
@@ -54,9 +95,11 @@ function FinalUI({
         data: { message: "Generate my final trip plan" },
       });
     }
+    whenFinal();
   };
 
   const handleViewTrip = () => {
+    console.log("🚀 ~ handleViewTrip ~ tripDetails:", tripDetails);
     if (tripDetails?.id) {
       router.push(`/view/${tripDetails.id}`);
     }

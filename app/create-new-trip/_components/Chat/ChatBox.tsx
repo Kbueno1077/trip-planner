@@ -7,8 +7,7 @@ import { useGenerativeActions } from "@/hooks/use-generative-actions";
 import { useChat } from "@ai-sdk/react";
 import { useGenerativeUI, useRenderGenerativeUI } from "@front10/generative-ui";
 import { Loader2, SendIcon } from "lucide-react";
-import { useCallback, useLayoutEffect, useState } from "react";
-import { toast } from "sonner";
+import { useLayoutEffect, useState } from "react";
 
 import { ChatMessages } from "@/app/api/chat/route";
 import { DefaultChatTransport } from "ai";
@@ -25,8 +24,7 @@ import TripDurationUI, {
 } from "./TripDurationUI";
 
 function ChatBox() {
-  const [isFinalLoading, setIsFinalLoading] = useState(false);
-  const { tripDetails, setTripDetails } = useTripDetailContext();
+  const { tripDetails } = useTripDetailContext();
   const [input, setInput] = useState("");
 
   const { messages, sendMessage, status, error, stop } = useChat<ChatMessages>({
@@ -40,47 +38,8 @@ function ChatBox() {
   const renderGenerativeUI = useRenderGenerativeUI();
   const { handleUserAction } = useGenerativeActions({ sendMessage });
 
-  const whenFinal = useCallback(async () => {
-    setIsFinalLoading(true);
-
-    try {
-      const response = await fetch("/api/generate-trip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: messages,
-        }),
-      });
-
-      const result = await response.json();
-      console.log("🚀 ~ ChatBox ~ result:", result);
-
-      setTripDetails(result?.data?.trip_plan);
-      setIsFinalLoading(false);
-    } catch (error: unknown) {
-      console.error("Error in final step:", error);
-      const errorMessage =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message
-          : undefined;
-
-      toast.error(
-        errorMessage ??
-          "Sorry, there was an error generating your final trip plan. Please try again.",
-      );
-      setIsFinalLoading(false);
-    } finally {
-      setIsFinalLoading(false);
-    }
-  }, [messages, setTripDetails]);
-
   // Register components with the generative UI system
   useLayoutEffect(() => {
-    console.log("🔧 Registering components...");
-
     registerComponent({
       toolId: "showBudgetUI",
       LoadingComponent: BudgetUILoading,
@@ -142,27 +101,14 @@ function ChatBox() {
       toolId: "showFinalUI",
       LoadingComponent: FinalUILoading,
       SuccessComponent: ({ onAction }) => (
-        <FinalUI
-          isFinalLoading={isFinalLoading}
-          tripDetails={tripDetails}
-          onAction={onAction}
-        />
+        <FinalUI onAction={onAction} messages={messages} />
       ),
       ErrorComponent: FinalUIError,
       onUserAction: (action) => {
         // handleUserAction(action);
-        whenFinal();
       },
     });
-
-    console.log("✅ Components registered successfully");
-  }, [
-    registerComponent,
-    handleUserAction,
-    isFinalLoading,
-    tripDetails,
-    whenFinal,
-  ]);
+  }, [registerComponent, handleUserAction, tripDetails, messages]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -221,16 +167,6 @@ function ChatBox() {
                         const error =
                           "errorText" in part ? part.errorText : undefined;
 
-                        console.log("🔧 Tool part:", {
-                          toolId,
-                          state,
-                          input,
-                          output,
-                          error,
-                          toolCallId,
-                          partType: part.type,
-                        });
-
                         const renderedComponent = renderGenerativeUI({
                           toolId,
                           state: state as
@@ -243,11 +179,6 @@ function ChatBox() {
                           error,
                           toolCallId,
                         });
-
-                        console.log(
-                          "🎨 Rendered component:",
-                          renderedComponent,
-                        );
 
                         if (renderedComponent) {
                           return (
@@ -309,15 +240,9 @@ function ChatBox() {
               type="submit"
               size="icon"
               className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4"
-              disabled={
-                status === "streaming" ||
-                status === "submitted" ||
-                isFinalLoading
-              }
+              disabled={status === "streaming" || status === "submitted"}
             >
-              {status === "streaming" ||
-              status === "submitted" ||
-              isFinalLoading ? (
+              {status === "streaming" || status === "submitted" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <SendIcon className="h-4 w-4" />
