@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   createContext,
@@ -6,14 +6,14 @@ import React, {
   useMemo,
   useState,
   useRef,
-} from 'react';
+} from "react";
 import type {
   GenerativeUIComponent,
   GenerativeUIRegistryType,
   GenerativeUIRendererProps,
   UseGenerativeUI,
   UserAction,
-} from './types';
+} from "./types";
 
 // Contexto para el registro de componentes generativos
 const GenerativeUIContext = createContext<UseGenerativeUI | null>(null);
@@ -23,7 +23,7 @@ export const useGenerativeUI = (): UseGenerativeUI => {
   const context = useContext(GenerativeUIContext);
   if (!context) {
     throw new Error(
-      'useGenerativeUI must be used within a GenerativeUIProvider',
+      "useGenerativeUI must be used within a GenerativeUIProvider",
     );
   }
   return context;
@@ -36,7 +36,7 @@ export const GenerativeUIProvider: React.FC<{
   const [, setRegistry] = useState<GenerativeUIRegistryType>({});
   const registryRef = useRef<GenerativeUIRegistryType>({});
 
-  const registerComponent = <TInput = any, TOutput = any>(
+  const registerComponent = <TInput, TOutput>(
     component: GenerativeUIComponent<TInput, TOutput>,
   ) => {
     // Actualizar tanto el estado como la ref
@@ -58,10 +58,10 @@ export const GenerativeUIProvider: React.FC<{
     if (!component) {
       // En lugar de mostrar un error, mostrar un componente de fallback
       return React.createElement(
-        'div',
+        "div",
         {
           key: toolCallId,
-          className: 'p-4 border border-gray-200 rounded-lg bg-gray-50',
+          className: "p-4 border border-gray-200 rounded-lg bg-gray-50",
         },
         `Component not registered for tool: ${toolId}`,
       );
@@ -71,7 +71,7 @@ export const GenerativeUIProvider: React.FC<{
 
     // Función helper para pasar onAction a los componentes
     const createActionHandler =
-      (componentToolId: string) => (action: Omit<UserAction, 'toolId'>) => {
+      (componentToolId: string) => (action: Omit<UserAction, "toolId">) => {
         const fullAction = {
           toolId: componentToolId,
           ...action,
@@ -82,8 +82,8 @@ export const GenerativeUIProvider: React.FC<{
       };
 
     switch (state) {
-      case 'input-streaming':
-      case 'input-available':
+      case "input-streaming":
+      case "input-available":
         if (component.LoadingComponent) {
           return React.createElement(component.LoadingComponent, {
             key,
@@ -93,9 +93,9 @@ export const GenerativeUIProvider: React.FC<{
         }
         return null;
 
-      case 'output-available':
+      case "output-available":
         // Verificar si hay error en el output
-        if (output && typeof output === 'object' && 'error' in output) {
+        if (output && typeof output === "object" && "error" in output) {
           if (component.ErrorComponent) {
             return React.createElement(component.ErrorComponent, {
               key,
@@ -106,10 +106,10 @@ export const GenerativeUIProvider: React.FC<{
           }
           // Fallback si no hay ErrorComponent
           return React.createElement(
-            'div',
+            "div",
             {
               key,
-              className: 'text-red-500 p-2 border rounded',
+              className: "text-red-500 p-2 border rounded",
             },
             `Error: ${String(output.error)}`,
           );
@@ -123,23 +123,23 @@ export const GenerativeUIProvider: React.FC<{
           onAction: createActionHandler(toolId),
         });
 
-      case 'output-error':
+      case "output-error":
         if (component.ErrorComponent) {
           return React.createElement(component.ErrorComponent, {
             key,
-            error: error || 'Unknown error occurred',
+            error: error || "Unknown error occurred",
             input,
             onAction: createActionHandler(toolId),
           });
         }
         // Fallback si no hay ErrorComponent
         return React.createElement(
-          'div',
+          "div",
           {
             key,
-            className: 'text-red-500 p-2 border rounded',
+            className: "text-red-500 p-2 border rounded",
           },
-          `Error: ${error || 'Unknown error occurred'}`,
+          `Error: ${error || "Unknown error occurred"}`,
         );
 
       default:
