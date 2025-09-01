@@ -39,6 +39,7 @@ export default function RootLayout({
         >
           <Toaster />
           <ConvexClientProvider>
+            {/* @ts-expect-error GenerativeUIProvider is not typed */}
             <GenerativeUIProvider>{children}</GenerativeUIProvider>
           </ConvexClientProvider>
         </body>
