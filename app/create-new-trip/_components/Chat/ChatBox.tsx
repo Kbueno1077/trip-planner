@@ -18,6 +18,14 @@ import GroupSizeUI, {
   GroupSizeUIError,
   GroupSizeUILoading,
 } from "./GroupSizeUI";
+import InterestsUI, {
+  InterestsUIError,
+  InterestsUILoading,
+} from "./InterestsUI";
+import AccommodationUI, {
+  AccommodationUIError,
+  AccommodationUILoading,
+} from "./AccommodationUI";
 import TripDurationUI, {
   TripDurationUIError,
   TripDurationUILoading,
@@ -92,6 +100,58 @@ function ChatBox() {
         />
       ),
       ErrorComponent: TripDurationUIError,
+      onUserAction: (action) => {
+        handleUserAction(action);
+      },
+    });
+
+    registerComponent({
+      toolId: "showInterestsUI",
+      LoadingComponent: InterestsUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <InterestsUI
+          onSelectInterests={(interests) => {
+            onAction?.({
+              action: "select_interests",
+              data: {
+                interests: interests
+                  .map((interest) => interest.title)
+                  .join(", "),
+                categories: interests
+                  .map((interest) => interest.category)
+                  .join(", "),
+              },
+            });
+          }}
+        />
+      ),
+      ErrorComponent: InterestsUIError,
+      onUserAction: (action) => {
+        handleUserAction(action);
+      },
+    });
+
+    registerComponent({
+      toolId: "showAccommodationUI",
+      LoadingComponent: AccommodationUILoading,
+      SuccessComponent: ({ onAction }) => (
+        <AccommodationUI
+          onSelectAccommodation={(accommodations) => {
+            onAction?.({
+              action: "select_accommodation",
+              data: {
+                accommodations: accommodations
+                  .map((accommodation) => accommodation.title)
+                  .join(", "),
+                categories: accommodations
+                  .map((accommodation) => accommodation.category)
+                  .join(", "),
+              },
+            });
+          }}
+        />
+      ),
+      ErrorComponent: AccommodationUIError,
       onUserAction: (action) => {
         handleUserAction(action);
       },

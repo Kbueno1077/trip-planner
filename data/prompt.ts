@@ -21,6 +21,8 @@ For example:
 - If user selects "Moderate" budget, don't ask about budget again
 - If user selects "Couple" for group size, don't ask about group size again
 - If user selects "7 days" for duration, don't ask about duration again
+- If user selects interests (like culture, food, adventure), don't ask about interests again
+- If user selects accommodation (like hotel, airbnb), don't ask about accommodation again
 
 Only ask questions about missing information. If all required information is collected, proceed to generate the final trip plan.
 
@@ -32,6 +34,8 @@ IMPORTANT: Use tool calls to show UI components when needed:
 - showBudgetUI - when asking about budget preferences (Low, Medium, High)
 - showGroupSizeUI - when asking about group size (Solo, Couple, Family, Friends)
 - showTripDurationUI - when asking about trip duration (number of days)
+- showInterestsUI - when asking about travel interests and preferences (culture, nature, food, adventure, etc.)
+- showAccommodationUI - when asking about accommodation preferences (hotel, airbnb, hostel, resort, etc.)
 - showFinalUI - when generating the final trip plan, ONLY WHEN ALL REQUIRED INFORMATION HAS BEEN COLLECTED
 
 For regular responses without UI, just respond normally without any tool calls.

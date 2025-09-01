@@ -65,6 +65,38 @@ const tools = {
       };
     },
   }),
+  showInterestsUI: tool({
+    description:
+      "Show interests selection UI to the user. Only use this when you need to ask about travel interests and preferences.",
+    inputSchema: z.object({
+      message: z.string().describe("Message to display with the interests UI"),
+    }),
+    execute: async ({ message }) => {
+      console.log("🔧 showInterestsUI executed with message:", message);
+      return {
+        message,
+        uiType: "interests-selection",
+        status: "ready",
+      };
+    },
+  }),
+  showAccommodationUI: tool({
+    description:
+      "Show accommodation selection UI to the user. Only use this when you need to ask about accommodation preferences.",
+    inputSchema: z.object({
+      message: z
+        .string()
+        .describe("Message to display with the accommodation UI"),
+    }),
+    execute: async ({ message }) => {
+      console.log("🔧 showAccommodationUI executed with message:", message);
+      return {
+        message,
+        uiType: "accommodation-selection",
+        status: "ready",
+      };
+    },
+  }),
   showFinalUI: tool({
     description:
       "Show final trip generation UI to the user. Only use this when all required information has been collected.",
