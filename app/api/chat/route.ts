@@ -1,4 +1,3 @@
-import { prompt } from "@/data/prompt";
 import { PRO_PLAN_ID } from "@/lib/utils";
 import { openai } from "@ai-sdk/openai";
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -16,6 +15,7 @@ import {
   UIMessage,
 } from "ai";
 import { z } from "zod";
+import { prompt } from "./_components/prompt";
 
 const tools = {
   showBudgetUI: tool({
@@ -23,13 +23,12 @@ const tools = {
       "Show budget selection UI to the user. Only use this when you need to ask about budget preferences.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the budget UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showBudgetUI executed with message:", message);
       return {
         message,
         uiType: "budget-selection",
-        status: "ready",
       };
     },
   }),
@@ -38,13 +37,12 @@ const tools = {
       "Show group size selection UI to the user. Only use this when you need to ask about group size.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the group size UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showGroupSizeUI executed with message:", message);
       return {
         message,
         uiType: "group-size-selection",
-        status: "ready",
       };
     },
   }),
@@ -55,13 +53,12 @@ const tools = {
       message: z
         .string()
         .describe("Message to display with the trip duration UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showTripDurationUI executed with message:", message);
       return {
         message,
         uiType: "trip-duration-selection",
-        status: "ready",
       };
     },
   }),
@@ -70,13 +67,12 @@ const tools = {
       "Show interests selection UI to the user. Only use this when you need to ask about travel interests and preferences.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the interests UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showInterestsUI executed with message:", message);
       return {
         message,
         uiType: "interests-selection",
-        status: "ready",
       };
     },
   }),
@@ -87,13 +83,12 @@ const tools = {
       message: z
         .string()
         .describe("Message to display with the accommodation UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showAccommodationUI executed with message:", message);
       return {
         message,
         uiType: "accommodation-selection",
-        status: "ready",
       };
     },
   }),
@@ -102,13 +97,12 @@ const tools = {
       "Show final trip generation UI to the user. Only use this when all required information has been collected.",
     inputSchema: z.object({
       message: z.string().describe("Message to display with the final UI"),
+      genUI: z.string().describe("The UI Component we are going to render"),
     }),
     execute: async ({ message }) => {
-      console.log("🔧 showFinalUI executed with message:", message);
       return {
         message,
         uiType: "final-trip-generation",
-        status: "ready",
       };
     },
   }),
@@ -146,16 +140,24 @@ export async function POST(req: NextRequest) {
     const messages = body?.messages ?? [];
 
     const result = await streamText({
-      model: openai("gpt-4.1-nano"),
+      model: openai("gpt-4.1-mini"),
       tools,
       system: prompt,
       experimental_transform: smoothStream({ chunking: "word" }),
+      toolChoice: "auto",
       messages: convertToModelMessages(messages, {
         ignoreIncompleteToolCalls: true,
         tools: tools,
       }),
-      stopWhen: stepCountIs(1),
+      stopWhen: stepCountIs(2),
+      onStepFinish(stepFinished) {
+        console.log("Step finished:", stepFinished);
+      },
     });
+
+    const steps = result.steps;
+    const allToolCalls = (await steps).flatMap((step) => step.toolCalls);
+    console.log("🚀 ~ POST ~ allToolCalls:", allToolCalls);
 
     return result.toUIMessageStreamResponse();
   } catch (error: unknown) {

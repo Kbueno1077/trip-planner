@@ -11,6 +11,10 @@ import { useLayoutEffect, useState } from "react";
 
 import { ChatMessages } from "@/app/api/chat/route";
 import { DefaultChatTransport } from "ai";
+import AccommodationUI, {
+  AccommodationUIError,
+  AccommodationUILoading,
+} from "./AccommodationUI";
 import BudgetUI, { BudgetUIError, BudgetUILoading } from "./BudgetUI";
 import EmptyBoxState from "./EmptyBoxState";
 import FinalUI, { FinalUIError, FinalUILoading } from "./FinalUI";
@@ -22,10 +26,6 @@ import InterestsUI, {
   InterestsUIError,
   InterestsUILoading,
 } from "./InterestsUI";
-import AccommodationUI, {
-  AccommodationUIError,
-  AccommodationUILoading,
-} from "./AccommodationUI";
 import TripDurationUI, {
   TripDurationUIError,
   TripDurationUILoading,
@@ -35,7 +35,7 @@ function ChatBox() {
   const { tripDetails } = useTripDetailContext();
   const [input, setInput] = useState("");
 
-  const { messages, sendMessage, status, error, stop } = useChat<ChatMessages>({
+  const { messages, sendMessage, status } = useChat<ChatMessages>({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
@@ -164,9 +164,7 @@ function ChatBox() {
         <FinalUI onAction={onAction} messages={messages} />
       ),
       ErrorComponent: FinalUIError,
-      onUserAction: (action) => {
-        // handleUserAction(action);
-      },
+      onUserAction: () => {},
     });
   }, [registerComponent, handleUserAction, tripDetails, messages]);
 
@@ -210,63 +208,73 @@ function ChatBox() {
                         : "bg-white border border-gray-200 text-gray-800 shadow-sm hover:border-gray-300"
                     }`}
                   >
-                    {message.parts?.map((part, index) => {
-                      if (part.type.startsWith("tool-")) {
-                        const toolId = part.type.replace("tool-", "");
+                    {(() => {
+                      const firstToolIndex = message.parts?.findIndex((p) =>
+                        p.type.startsWith("tool-"),
+                      );
+                      return message.parts?.map((part, index) => {
+                        if (part.type.startsWith("tool-")) {
+                          // Ensure only the FIRST tool component per message is rendered
+                          if (firstToolIndex !== index) return null;
 
-                        // Use type guards to safely access properties
-                        const toolCallId =
-                          "toolCallId" in part
-                            ? part.toolCallId
-                            : `tool-${index}`;
-                        const state =
-                          "state" in part ? part.state : "input-available";
-                        const input = "input" in part ? part.input : undefined;
-                        const output =
-                          "output" in part ? part.output : undefined;
-                        const error =
-                          "errorText" in part ? part.errorText : undefined;
+                          const toolId = part.type.replace("tool-", "");
 
-                        const renderedComponent = renderGenerativeUI({
-                          toolId,
-                          state: state as
-                            | "input-streaming"
-                            | "input-available"
-                            | "output-available"
-                            | "output-error",
-                          input,
-                          output,
-                          error,
-                          toolCallId,
-                        });
+                          const toolCallId =
+                            "toolCallId" in part
+                              ? part.toolCallId
+                              : `tool-${index}`;
+                          const state =
+                            "state" in part ? part.state : "input-available";
+                          const input =
+                            "input" in part ? part.input : undefined;
+                          const output =
+                            "output" in part ? part.output : undefined;
+                          const error =
+                            "errorText" in part ? part.errorText : undefined;
 
-                        if (renderedComponent) {
+                          const renderedComponent = renderGenerativeUI({
+                            toolId,
+                            state: state as
+                              | "input-streaming"
+                              | "input-available"
+                              | "output-available"
+                              | "output-error",
+                            input,
+                            output,
+                            error,
+                            toolCallId,
+                          });
+
+                          if (renderedComponent) {
+                            return (
+                              <div key={toolCallId} className="mb-2">
+                                {renderedComponent}
+                              </div>
+                            );
+                          }
+
+                          // Fallback for unregistered tools
                           return (
-                            <div key={toolCallId}>{renderedComponent}</div>
+                            <div
+                              key={toolCallId}
+                              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+                            >
+                              Tool not registered: {toolId}
+                            </div>
                           );
                         }
 
-                        // Fallback for unregistered tools
-                        return (
-                          <div
-                            key={toolCallId}
-                            className="p-4 border border-gray-200 rounded-lg bg-gray-50"
-                          >
-                            Tool not registered: {toolId}
-                          </div>
-                        );
-                      }
+                        if (part.type === "text") {
+                          return (
+                            <div key={`${message.id}-${part.text}-${index}`}>
+                              {part.text}
+                            </div>
+                          );
+                        }
 
-                      if (part.type === "text") {
-                        return (
-                          <div key={`${message.id}-${part.text}-${index}`}>
-                            {part.text}
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })}
+                        return null;
+                      });
+                    })()}
                   </div>
                 </div>
               );

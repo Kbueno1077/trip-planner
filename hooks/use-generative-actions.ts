@@ -30,6 +30,21 @@ export function useGenerativeActions({
       case "select_duration":
         content = `I have selected my trip duration: ${action.data?.duration || "this duration"}. Please proceed to the next question.`;
         break;
+      case "select_interests": {
+        const interests: string | undefined = action.data?.interests;
+        const categories: string | undefined = action.data?.categories;
+        const details = interests || categories || "my interests";
+        content = `I have selected my interests: ${details}. Please proceed to the next question.`;
+        break;
+      }
+      case "select_accommodation": {
+        const accommodations: string | undefined = action.data?.accommodations;
+        const categories: string | undefined = action.data?.categories;
+        const details =
+          accommodations || categories || "my accommodation preferences";
+        content = `I have selected my accommodation preferences: ${details}. Please proceed to the next question.`;
+        break;
+      }
       case "generate_final":
         content = `I have provided all the required information. Please generate my final trip plan.`;
         break;
